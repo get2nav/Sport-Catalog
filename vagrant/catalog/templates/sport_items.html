@@ -1,0 +1,29 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+      <main >
+
+          <div class="row">
+
+            <div class="col-md-4 main_divider">
+              <h3><strong>Catagories</strong></h3>
+              {% for dat in menu %}
+              <tr>
+                <td><a href='{{url_for('sportItem', sport_name = dat.name)}}' >{{dat.name}}</a></td><br>
+              </tr>
+              {% endfor %}
+            </div>
+            <div class="col-md-8">
+              <h3><strong>{{sport_name}} Items ({{items_count}} items) </strong></h3>
+              {% for i in sport_item_list %}
+              <tr>
+                <td> <a href='{{url_for('itemDescription',sport_name =i.sport.name, item_name = i.name)}}' > {{i.name}}</a></td><br>
+              </tr>
+              {% endfor %}
+            </div>
+
+          </div>
+
+
+      </main>
+{% endblock %}

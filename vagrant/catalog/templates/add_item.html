@@ -1,0 +1,33 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+      <main >
+
+          <div class="row">
+
+            <div class="col-md-4 form-group">
+              <form class="" action="#" method="post">
+                <h3><strong>Add Item</strong></h3>
+                <label for="title">Title</label>
+                <input type="text" class="form-control" name="title">
+                <label for="description">Description</label>
+                <input type="text" class="form-control" name="description">
+                <label for="catg">Catagory</label>
+
+                <select class="form-control" name="catg">
+                  {% for sport in menu %}
+                  <option value="{{sport.id}}">{{sport.name}}</option>
+                  {% endfor %}
+                </select>
+                <br>
+                <button type="submit" class="btn btn-default" >Submit</button>
+
+              </form>
+
+            </div>
+
+          </div>
+
+
+      </main>
+{% endblock %}

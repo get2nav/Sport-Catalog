@@ -1,0 +1,26 @@
+<header>
+  <div class="row">
+    <div class="col-md-6 text-center">
+      <h1><strong>Catalog App</strong></h1>
+    </div>
+    <div class="col-md-6 text-center login ">
+
+      <!-- <form class="" action="{{url_for('showLogin')}}" method = 'POST'>
+        <button class="btn btn-default" type="submit">Login</button>
+      </form> -->
+      {% if 'username' not in login_session %}
+      <!-- <a href="{{url_for('showLogin')}}">Click Here to Log in </a> -->
+      <form class="" action="{{url_for('showLogin')}}" method="post">
+        <button class="btn btn-default" type="submit">Login</button>
+      </form>
+      {% endif %}
+      {% if 'username' in login_session %}
+      <!-- <a href="{{url_for('gdisconnect')}}">Click Here to Logout </a> -->
+      <form class="" action="{{url_for('gdisconnect')}}" method="post">
+        <button class="btn btn-default" type="submit">Logout</button>
+      </form>
+      {% endif %}
+
+    </div>
+  </div>
+</header>

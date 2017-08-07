@@ -1,0 +1,22 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+      <main >
+
+          <div class="row">
+
+            <div class="col-md-12">
+              <h3>{{item_name}}</h3>
+              <p>Description:{{sport_item_list.description}}</p><br>
+              {% if 'username' in login_session %}
+              {% if sport_item_list.user_id == login_session.user_id %}
+              <span><a href='{{url_for('editItem', item_name = item_name)}}'>Edit</a> | <a href='{{url_for('deleteItem', item_name = item_name)}}'>Delete</a></span>
+              {% endif %}
+              {% endif %}
+            </div>
+
+          </div>
+
+
+      </main>
+{% endblock %}
