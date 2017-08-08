@@ -1,18 +1,3 @@
-from flask import Flask, render_template, request
-from flask import redirect, url_for, flash, jsonify
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from database_setup import Base, Sports, Essentials, User
-from flask import session as login_session
-import random
-import string
-from oauth2client.client import flow_from_clientsecrets
-from oauth2client.client import FlowExchangeError
-import httplib2
-import json
-from flask import make_response
-import requests
-
 app = Flask(__name__)
 
 CLIENT_ID = json.loads(
@@ -25,16 +10,13 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
-
 @app.route('/login', methods=['POST'])
 def showLogin():
     state = ''.join(
-        random.choice(string.ascii_uppercase + string.digits)
-        for x in range(32))
+        random.choice(string.ascii_uppercase + string.digits) for x in range(32))
     login_session['state'] = state
     # return "The current session state is %s" % login_session['state']
     return render_template('login.html', STATE=state)
-
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
@@ -92,8 +74,7 @@ def gconnect():
     stored_access_token = login_session.get('access_token')
     stored_gplus_id = login_session.get('gplus_id')
     if stored_access_token is not None and gplus_id == stored_gplus_id:
-        response = make_response(json.dumps(
-            'Current user is already connected.'),
+        response = make_response(json.dumps('Current user is already connected.'),
                                  200)
         response.headers['Content-Type'] = 'application/json'
         return response
@@ -125,12 +106,9 @@ def gconnect():
     output += '!</h1>'
     output += '<img src="'
     output += login_session['picture']
-    output += ' " style = "width: 300px; height: 300px;'
-    output += 'border-radius: 150px;-webkit-border-radius: 150px;'
-    output += '-moz-border-radius: 150px;"> '
+    output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
     flash("you are now logged in as %s" % login_session['username'])
     return output
-
 
 def createUser(login_session):
     newUser = User(name=login_session['username'], email=login_session[
@@ -153,8 +131,8 @@ def getUserID(email):
     except:
         return None
 
-
 # DISCONNECT - Revoke a current user's token and reset their login_session
+
 @app.route('/gdisconnect', methods=['POST'])
 def gdisconnect():
         # Only disconnect a connected user.
@@ -174,6 +152,10 @@ def gdisconnect():
         del login_session['username']
         del login_session['email']
         del login_session['picture']
+
+        # response = make_response(json.dumps('Successfully disconnected.'), 200)
+        # response.headers['Content-Type'] = 'application/json'
+        # return response
         return redirect(url_for('sportMenu'))
     else:
         # For whatever reason, the given token was invalid.
@@ -181,59 +163,38 @@ def gdisconnect():
             json.dumps('Failed to revoke token for given user.', 400))
         response.headers['Content-Type'] = 'application/json'
         return response
-
-
 @app.route('/catalog/JSON')
 def sportsJSON():
     sports = session.query(Sports).all()
     return jsonify(Menu_Item=[i.serialize for i in sports])
 
-
 @app.route('/catalog/<sport_name>/JSON')
 def itemJSON(sport_name):
-    sport = session.query(Sports).filter_by(name=sport_name).one()
-    items = session.query(Essentials).filter_by(sport_id=sport.id).all()
+    sport = session.query(Sports).filter_by(name = sport_name).one()
+    items = session.query(Essentials).filter_by(sport_id = sport.id).all()
     return jsonify(Item=[i.serialize for i in items])
-
 
 @app.route('/')
 @app.route('/main')
 def sportMenu():
     menu = session.query(Sports).all()
-    latest_items = session.query(Essentials).order_by(
-        Essentials.id.desc()).limit(9).all()
-    return render_template('main_menu.html', menu=menu,
-                           latest_items=latest_items,
-                           login_session=login_session)
-
+    latest_items = session.query(Essentials).order_by(Essentials.id.desc()).limit(9).all()
+    return render_template('main_menu.html', menu = menu,latest_items =latest_items,login_session =login_session)
 
 @app.route('/catalog/<sport_name>/items')
 def sportItem(sport_name):
     menu = session.query(Sports).all()
-    sport_id = session.query(Sports).filter_by(name=sport_name).one()
-    sport_item_list = session.query(Essentials).filter_by(
-        sport_id=sport_id.id).all()
-    items_count = session.query(Essentials).filter_by(
-        sport_id=sport_id.id).count()
-    return render_template('sport_items.html', menu=menu,
-                           sport_name=sport_name,
-                           sport_item_list=sport_item_list,
-                           items_count=items_count,
-                           login_session=login_session)
-
+    sport_id = session.query(Sports).filter_by(name = sport_name).one()
+    sport_item_list = session.query(Essentials).filter_by(sport_id =sport_id.id).all()
+    items_count = session.query(Essentials).filter_by(sport_id =sport_id.id).count()
+    return render_template('sport_items.html',menu = menu, sport_name = sport_name, sport_item_list=sport_item_list, items_count = items_count,login_session = login_session)
 
 @app.route('/catalog/<sport_name>/<item_name>')
-def itemDescription(sport_name, item_name):
-    sport_id = session.query(Sports).filter_by(
-        name=sport_name).one()
-    item_id = session.query(Essentials).filter_by(
-        name=item_name).one()
-    sport_item_list = session.query(Essentials).filter_by(
-        sport_id=sport_id.id, id=item_id.id).one()
-    return render_template('description_page.html', item_name=item_name,
-                           sport_item_list=sport_item_list,
-                           login_session=login_session)
-
+def itemDescription(sport_name,item_name):
+    sport_id = session.query(Sports).filter_by(name = sport_name).one()
+    item_id = session.query(Essentials).filter_by(name = item_name).one()
+    sport_item_list = session.query(Essentials).filter_by(sport_id =sport_id.id, id = item_id.id).one()
+    return render_template('description_page.html',item_name = item_name, sport_item_list = sport_item_list, login_session = login_session)
 
 @app.route('/catalog/add_item', methods=['GET', 'POST'])
 def addItem():
@@ -241,63 +202,46 @@ def addItem():
         return redirect('/login')
     menu = session.query(Sports).all()
     if request.method == 'POST':
-        newItem = Essentials(name=request.form['title'],
-                             description=request.form['description'],
-                             sport_id=request.form['catg'],
-                             user_id=login_session['user_id'])
+        newItem = Essentials(name=request.form['title'], description=request.form['description'],
+                             sport_id=request.form['catg'], user_id=login_session['user_id'])
         session.add(newItem)
         session.commit()
         return redirect(url_for('sportMenu'))
     else:
-        return render_template('add_item.html', menu=menu,
-                               login_session=login_session)
-
+        return render_template('add_item.html',menu = menu, login_session = login_session)
 
 @app.route('/catalog/<item_name>/edit', methods=['GET', 'POST'])
 def editItem(item_name):
     if 'username' not in login_session:
         return redirect('/login')
     menu = session.query(Sports).all()
-    item = session.query(Essentials).filter_by(name=item_name).one()
-    select_sport = session.query(Sports).filter_by(id=item.sport_id).one()
+    item = session.query(Essentials).filter_by(name = item_name).one()
+    select_sport = session.query(Sports).filter_by(id = item.sport_id).one()
     if request.method == 'POST':
-        if item.user_id == login_session['user_id']:
-            updateItem = session.query(Essentials).filter_by(
-                name=item_name, user_id=login_session['user_id']).one()
-            if request.form['title']:
-                updateItem.name = request.form['title']
-            if request.form['description']:
-                updateItem.description = request.form['description']
-            if request.form['catg']:
-                updateItem.sport_id = request.form['catg']
-            session.add(updateItem)
-            session.commit()
-            return redirect(url_for('sportMenu'))
-        else:
-            return redirect(url_for('sportMenu'))
-
+        updateItem = session.query(Essentials).filter_by(name = item_name,user_id=login_session['user_id']).one()
+        if request.form['title']:
+            updateItem.name = request.form['title']
+        if request.form['description']:
+            updateItem.description = request.form['description']
+        if request.form['catg']:
+            updateItem.sport_id = request.form['catg']
+        session.add(updateItem)
+        session.commit()
+        return redirect(url_for('sportMenu'))
     else:
-        return render_template('edit_item.html', menu=menu,
-                               login_session=login_session, item=item,
-                               select_sport=select_sport)
-
+        return render_template('edit_item.html',menu = menu, login_session = login_session, item = item, select_sport = select_sport)
 
 @app.route('/catalog/<item_name>/delete', methods=['GET', 'POST'])
 def deleteItem(item_name):
     if 'username' not in login_session:
         return redirect('/login')
-    item = session.query(Essentials).filter_by(name=item_name).one()
-    itemToDelete = session.query(Essentials).filter_by(
-        name=item_name, user_id=login_session['user_id']).one()
+    itemToDelete = session.query(Essentials).filter_by(name = item_name).one()
     if request.method == 'POST':
-        if item.user_id == login_session['user_id']:
-            session.delete(itemToDelete)
-            session.commit()
-            return redirect(url_for('sportMenu'))
-        else:
-            return redirect(url_for('sportMenu'))
+        session.delete(itemToDelete)
+        session.commit()
+        return redirect(url_for('sportMenu'))
     else:
-        return render_template('delete_item.html', login_session=login_session)
+        return render_template('delete_item.html', login_session = login_session)
 
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
